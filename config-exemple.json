@@ -1,0 +1,12 @@
+{
+    "trelloKey" :       "",
+    "trelloToken" :     "",
+    "idTableau" :       "",
+    "idListToClean" :   "",
+    "bdd" : {
+        "host": "localhost",
+        "user": "root",
+        "password": "",
+        "database": "trello-manager"
+    }
+}
