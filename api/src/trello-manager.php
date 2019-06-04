@@ -8,8 +8,11 @@ class TrelloManager {
     private $trelloToken  = '';
     private $idTableau = '';
     private $idListToClean = '';
+    private $app = null;
 
-    public function __construct() {
+    public function __construct($app) {
+
+        $this->app = $app;
         
         $config = require ( __DIR__ . '/configTrello.php');
         // var_dump($config);
@@ -27,15 +30,15 @@ class TrelloManager {
                 $actions = self::getCardActions( $card->id );
                 if($actions) {
                     foreach($actions as $action) {
-                        if($action->data && $action->data->listAfter) {
+                        if(isset($action->data->listAfter) && $action->data->listAfter) {
                             $d = new DateTime($action->date);
                             // $since = $d->diff($timeNow, true);
                             // echo "Il y a ", $since->format('%a days and %h'), "->", $delta, " jours", "\n";
                             $delta = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
                             echo "Il y a ", round($delta, 2), " jours : ", $card->name, "\n";
                             if($delta > 7) {
-                                if(self::closeCard($card->id)) echo "-> La carte a été archivée\n";
-                                else echo "-> La carte n'a pas pu être archivée\n";
+                                if(self::closeCard($card->id)) $this->app->logger->info("La carte " . $card->name . " a été archivée");
+                                else $this->app->logger->info( "La carte " . $card->name . " n'a pas pu être archivée");
                             }
                             break;
                         }
@@ -43,7 +46,7 @@ class TrelloManager {
                 }
             }
         } else {
-            echo "Liste à nettoyer introuvable :(\n";
+            $this->app->logger->error( "Liste à nettoyer introuvable :(");
         }
     }
 
