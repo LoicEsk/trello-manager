@@ -8,7 +8,7 @@ require __DIR__ . '/trello-manager.php';
 
 $app->get('/cron',function () {
     // cron
-    $this->logger->info("Trello Manager /cron");
+    // $this->logger->info("Trello Manager /cron");
     header("Content-Type: text/plain"); // sortie en mode texte
     $TM = new src\trelloManager\TrelloManager( $this );
     $TM->archiveDONE();

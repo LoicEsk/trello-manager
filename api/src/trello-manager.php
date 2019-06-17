@@ -20,6 +20,7 @@ class TrelloManager {
         $this->trelloToken = $config["trelloToken"];
         $this->idTableau = $config["idTableau"];
         $this->idListToClean = $config["idListToClean"];
+        $this->slack_webhook = $config["slack_webhook"];
     }
 
     public function archiveDONE() {
@@ -37,7 +38,11 @@ class TrelloManager {
                             $delta = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
                             echo "Il y a ", round($delta, 2), " jours : ", $card->name, "\n";
                             if($delta > 7) {
-                                if(self::closeCard($card->id)) $this->app->logger->info("La carte " . $card->name . " a été archivée");
+                                if(self::closeCard($card->id)) {
+                                    $msg = "La carte " . $card->name . " a été archivée";
+                                    $this->app->logger->info($msg);
+                                    self::sendToSlack($msg);
+                                } 
                                 else $this->app->logger->info( "La carte " . $card->name . " n'a pas pu être archivée");
                             }
                             break;
@@ -117,5 +122,28 @@ class TrelloManager {
         return $retour;
     }
 
+    private function sendToSlack($msg) {
+        $url = $this->slack_webhook;
+
+        $message = array('payload' => json_encode(array(
+            'text' => $msg
+        )));
+
+        $ch = curl_init(); 
+        curl_setopt($ch, CURLOPT_URL, $url); 
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $message);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
+        $body = curl_exec($ch); 
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
+        curl_close($ch); 
+
+        $retour = array(
+            'status' => $httpCode,
+            'response' => $body
+        );
+        return $retour['response'] == 'ok';
+    }
 
 }
