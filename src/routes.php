@@ -6,7 +6,7 @@ use Slim\Http\Response;
 use App\TrelloManager;
 // Routes
 
-$app->get('/cron', TrelloManager::class . ':archiveDONE');
+$app->get('/cron', TrelloManager::class . ':doCron');
 
 
 $app->get('/[{name}]', function (Request $request, Response $response, array $args) {
