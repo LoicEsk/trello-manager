@@ -2,6 +2,8 @@
 
 define('APP_ROOT', __DIR__);
 
+$config = require ( __DIR__ . '/configTrello.php');
+
 return [
     'settings' => [
         'displayErrorDetails' => true, // set to false in production
@@ -18,6 +20,8 @@ return [
             'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
+
+        'trello' => $config,
 
         'doctrine' => [
             // if true, metadata caching is forcefully disabled

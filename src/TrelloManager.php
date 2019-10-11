@@ -16,21 +16,34 @@ class TrelloManager {
     public function __construct($container) {
 
         $this->app = $container;
+        // var_dump($this->app['settings']);
         
-        $config = require ( __DIR__ . '/configTrello.php');
+        $config = $this->app['settings']['trello'];
         // var_dump($config);
         $this->trelloKey = $config["trelloKey"];
         $this->trelloToken = $config["trelloToken"];
         $this->idTableau = $config["idTableau"];
         $this->idListToClean = $config["idListToClean"];
+        $this->idListWaiting = $config["idListWaiting"];
         $this->slack_webhook = $config["slack_webhook"];
     }
 
+    public function doCron(Request $request, Response $response) {
+        // ARCHIVAGE DES cartes dans DONE depuis assez longtemps
+        $newResponse = $response->withHeader('Content-type', 'text/plain');
+        $this->archiveDONE($request, $newResponse);
+        $this->upATTENTE($request, $newResponse);
+
+        return $newResponse;
+    }
+
     public function archiveDONE(Request $request, Response $response) {
-        header("Content-Type: text/plain"); // sortie en mode texte
+        $body = $response->getBody(); // $body->write('somthing'); pour la sortie
+        $body->write("\n== Archivage des cartes DONE\n");
 
         $timeNow = new DateTime("NOW");
-        $cards = self::getList( $this->idListToClean );
+        $cards = self::getList( $this->idListToClean, $response );
+        $body->write("   " . count($cards) . " cartes dans EN ATTENTE\n");
         if($cards) {
             foreach($cards as $card) {
                 $actions = self::getCardActions( $card->id );
@@ -41,7 +54,7 @@ class TrelloManager {
                             // $since = $d->diff($timeNow, true);
                             // echo "Il y a ", $since->format('%a days and %h'), "->", $delta, " jours", "\n";
                             $delta = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
-                            echo "Il y a ", round($delta, 2), " jours : ", $card->name, "\n";
+                            $body->write( "Il y a " . round($delta, 2) . " jours : " . $card->name . "\n" );
                             if($delta > 7) {
                                 if(self::closeCard($card->id)) {
                                     $msg = "La carte " . $card->name . " a été archivée";
@@ -60,14 +73,45 @@ class TrelloManager {
         }
     }
 
-    private function getList($listID) {
+    public function upATTENTE(Request $request, Response $response) {
+        $body = $response->getBody(); // $body->write('somthing'); pour la sortie
+        $body->write("\n== Rappel des cartes EN ATTENTE\n");
+
+        $timeNow = new DateTime("NOW");
+        $cards = self::getList( $this->idListWaiting, $response );
+        $body->write("   " . count($cards) . " cartes dans EN ATTENTE\n");
+        if($cards) {
+            foreach($cards as $card) {
+                $actions = self::getCardActions( $card->id );
+                if($actions) {
+                    foreach($actions as $action) {
+                        if(isset($action->data->listAfter) && $action->data->listAfter) {
+                            $d = new DateTime($action->date);
+                            // $since = $d->diff($timeNow, true);
+                            // echo "Il y a ", $since->format('%a days and %h'), "->", $delta, " jours", "\n";
+                            $delta = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
+                            $body->write( "Depuis " . round($delta, 2) . " jours : " . $card->name . "\n" );
+                            if($delta > 15) {
+                                $body->write("  => up !");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            $this->app->logger->error( "Liste en attente introuvable :(");
+        }
+    }
+
+    private function getList($listID, Response $response) {
         $route = 'lists/' . $listID . '/cards';
         $rtn = self::trelloRequest($route);
         if($rtn["status"] == 200) {
             $cards = json_decode($rtn["response"]);
             return $cards;
         } else {
-            echo "Liste à nettoyer introuvable :(\n";
+            $response->getBody()->write( "Liste $listID introuvable :(\n" );
             return NULL;
         }
     }

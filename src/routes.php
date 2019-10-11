@@ -4,17 +4,19 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 
 use App\TrelloManager;
+use App\TrelloTools;
 // Routes
 
 $app->get('/cron', TrelloManager::class . ':doCron');
 
 
-$app->get('/[{name}]', function (Request $request, Response $response, array $args) {
-    // Sample log message
-    // $this->logger->info("Slim-Skeleton '/' route");
+$app->get('/lists', function (Request $request, Response $response, array $args) {
+    $trelloTools = new TrelloTools($this);
+    $lists = $trelloTools->getLists();
 
-    // Render index view
-    return $this->renderer->render($response, 'index.phtml', $args);
+    $newResponse = $response->withHeader('Content-type', 'application/json');
+    $response->getBody()->write(json_encode($lists));
+    return $response;
 });
 
 
