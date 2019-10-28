@@ -20,10 +20,26 @@ class TrelloTools {
         $this->trelloToken = $config["trelloToken"];
     }
 
+    public function getBoards() {
+        $idTableau = $this->app['settings']['trello']['idTableau'];
+        $apiResponse = $this->trelloRequest("members/me/boards");
+        if($apiResponse["status"] == 200) {
+            $boards = json_decode($apiResponse['response']);
+            return array_map( function( $board ) {
+                return array(
+                    "name"  => $board->name,
+                    "id"    => $board->id
+                );
+            }, $boards);
+        }
+        return null;
+    }
+
     public function getLists() {
         $idTableau = $this->app['settings']['trello']['idTableau'];
         $apiResponse = $this->trelloRequest("boards/$idTableau/lists");
         if($apiResponse["status"] == 200) {
+
             return $apiResponse['response'];
         }
         return null;
