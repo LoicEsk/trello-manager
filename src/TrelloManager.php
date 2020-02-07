@@ -35,6 +35,7 @@ class TrelloManager {
 
         $this->doArchivage();
         $this->doUp();
+        $this->readNotifs();
 
         $body = $this->response->getBody();
         $body->write("\n == What's all folks ! ==");
@@ -79,28 +80,6 @@ class TrelloManager {
                     } 
                     else $this->app->logger->error( "La carte " . $card->name . " n'a pas pu être archivée");
                 }
-
-                // $actions = self::getCardActions( $card->id, "updateCard" );
-                // if($actions) {
-                //     foreach($actions as $action) {
-                //         if(isset($action->data->listAfter) && $action->data->listAfter) {
-                //             $d = new DateTime($action->date);
-                //             // $since = $d->diff($timeNow, true);
-                //             // echo "Il y a ", $since->format('%a days and %h'), "->", $delta, " jours", "\n";
-                //             $delta = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
-                //             $body->write( " - Il y a " . round($delta, 2) . " jours : " . $card->name . "\n" );
-                //             if($delta > $delai) {
-                //                 if(self::closeCard($card->id)) {
-                //                     $msg = "ARCHIVEE : " . $card->name;
-                //                     $this->app->logger->info($msg);
-                //                     self::sendToSlack($msg);
-                //                 } 
-                //                 else $this->app->logger->info( "La carte " . $card->name . " n'a pas pu être archivée");
-                //             }
-                //             break;
-                //         }
-                //     }
-                // }
             }
         } else {
             $this->app->logger->error( "Liste à nettoyer introuvable :(");
@@ -129,10 +108,12 @@ class TrelloManager {
 
                 if($deltaLastActivity > $delai) {
                     $notif = "@card Cette carte est ici depuis " . round($deltaUpdate, 0) . " jours. Il faudrait songer à s'en occuper.";
-                    if($deltaUpdate > 2.5 * $delai) $notif = "@card Cette carte traine ici depuis " . round($deltaUpdate, 0) . " jours. Que se passe-t-il ?";
-                    if($deltaUpdate > 4 * $delai) $notif = "@card Cette carte pourrie maintenant ici depuis " . round($deltaUpdate, 0) . " jours. :scream:";
+                    if($deltaUpdate > 2.5 * $delai) $notif = "@card Cette carte attend ici depuis " . round($deltaUpdate, 0) . " jours. Que se passe-t-il ?";
+                    if($deltaUpdate > 4 * $delai) $notif = "@card Cette carte poirote maintenant ici depuis " . round($deltaUpdate, 0) . " jours. :scream:";
                     if($deltaUpdate > 7 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :cold_sweat:";
                     if($deltaUpdate > 8 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :dizzy_face:";
+                    if($deltaUpdate > 10 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :skull:";
+                    if($deltaUpdate > 11 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :skull_and_crossbones:";
                     
                     $body->write("=> UP !\n");
                     self::sendToSlack( "UP : Ici depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours : " . $card->name);
@@ -142,6 +123,37 @@ class TrelloManager {
         } else {
             $this->app->logger->error( "Liste en attente introuvable :(");
             $this->sendToSlack(":danger: La liste $idListe est introuvable !");
+        }
+    }
+
+    public function readNotifs( ) {
+        $body = $this->response->getBody();
+        $body->write( "\n== Réponses aux notifications\n" );
+
+        $notifications = $this->getUnreadNotifications();
+        if( $notifications ) {
+            $body->write( count( $notifications ) . " notifications\n" );
+            foreach( $notifications as $notif ) {
+                // var_dump( $notif );
+                $notifId = $notif->id;
+                $cardId = $notif->data->card->id;
+                $senderSlug = $notif->memberCreator->username;
+                $senderFullName = $notif->memberCreator->fullName;
+                
+                switch( random_int( 0, 3) ) {
+                    case 0: $answer = ':horse:'; break;
+                    case 1: $answer = ':robot_face:'; break;
+                    case 2: $answer = ':zany_face:'; break;
+                    case 3: $answer = ':flushed:'; break;
+                }
+                self::sendToSlack( "Notif : Réponse à @$senderSlug -> $answer" );
+                $this->sendComment( $cardId, $answer );
+                $body->write( "Notif : Réponse à @$senderSlug -> $answer" );
+                $this->trelloRequest( "notifications/$notifId/unread", [ "value" => "false" ], "PUT" );
+                // var_dump( $this->trelloRequest( "notifications/$notifId", [ 'unread' => false ], "PUT" ) );
+                // var_dump( $answer );
+            }
+
         }
     }
 
@@ -164,6 +176,17 @@ class TrelloManager {
             return $actions;
         } else {
             echo "Carte " . $card->id ." est introuvable\n";
+            return NULL;
+        }
+    }
+
+    private function getUnreadNotifications( ) {
+        $reponse = self::trelloRequest( 'members/me/notifications', [ 'read_filter' => 'unread'] );
+        if($reponse["status"] == 200) {
+            $actions = json_decode($reponse["response"]);
+            return $actions;
+        } else {
+            echo "Notifications introuvables\n";
             return NULL;
         }
     }
