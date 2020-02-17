@@ -109,7 +109,7 @@ class TrelloManager {
                 if($deltaLastActivity > $delai) {
                     $notif = "@card Cette carte est ici depuis " . round($deltaUpdate, 0) . " jours. Il faudrait songer à s'en occuper.";
                     if($deltaUpdate > 2.5 * $delai) $notif = "@card Cette carte attend ici depuis " . round($deltaUpdate, 0) . " jours. Que se passe-t-il ?";
-                    if($deltaUpdate > 4 * $delai) $notif = "@card Cette carte poirote maintenant ici depuis " . round($deltaUpdate, 0) . " jours. :scream:";
+                    if($deltaUpdate > 4 * $delai) $notif = "@card Cette carte poirote ici depuis " . round($deltaUpdate, 0) . " jours. :scream:";
                     if($deltaUpdate > 7 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :cold_sweat:";
                     if($deltaUpdate > 8 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :dizzy_face:";
                     if($deltaUpdate > 10 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :skull:";
@@ -140,11 +140,14 @@ class TrelloManager {
                 $senderSlug = $notif->memberCreator->username;
                 $senderFullName = $notif->memberCreator->fullName;
                 
-                switch( random_int( 0, 3) ) {
+                switch( random_int( 0, 6) ) {
                     case 0: $answer = ':horse:'; break;
                     case 1: $answer = ':robot_face:'; break;
                     case 2: $answer = ':zany_face:'; break;
                     case 3: $answer = ':flushed:'; break;
+                    case 4: $answer = ':unicorn_face:'; break;
+                    case 5: $answer = ':nerd_face:'; break;
+                    case 6: $answer = 'https://gph.is/189r81H'; break;
                 }
                 self::sendToSlack( "Notif : Réponse à @$senderSlug -> $answer" );
                 $this->sendComment( $cardId, $answer );

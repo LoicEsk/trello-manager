@@ -54,8 +54,9 @@ api/src/configTrello.php
 app-statistics/.pnp
 .pnp.js
 
-// config
+# config
 src/configTrello.php
+src/._configTrello.php
 
 # testing
 app-statistics/coverage
