@@ -107,8 +107,8 @@ class TrelloManager {
                 $body->write( "Carte en attente depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours \t\t-- " . $card->name . "\n" );
 
                 if($deltaLastActivity > $delai) {
-                    $notif = "@card Cette carte est ici depuis " . round($deltaUpdate, 0) . " jours. Il faudrait songer à s'en occuper.";
-                    if($deltaUpdate > 2.5 * $delai) $notif = "@card Cette carte attend ici depuis " . round($deltaUpdate, 0) . " jours. Que se passe-t-il ?";
+                    $notif = "@card Cette carte est ici depuis " . round($deltaUpdate, 0) . " jours.";
+                    if($deltaUpdate > 2.5 * $delai) $notif = "@card Cette carte attend ici depuis " . round($deltaUpdate, 0) . " jours.";
                     if($deltaUpdate > 4 * $delai) $notif = "@card Cette carte poirote ici depuis " . round($deltaUpdate, 0) . " jours. :scream:";
                     if($deltaUpdate > 7 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :cold_sweat:";
                     if($deltaUpdate > 8 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :dizzy_face:";
@@ -145,9 +145,8 @@ class TrelloManager {
                     case 1: $answer = ':robot_face:'; break;
                     case 2: $answer = ':zany_face:'; break;
                     case 3: $answer = ':flushed:'; break;
-                    case 4: $answer = ':unicorn_face:'; break;
-                    case 5: $answer = ':nerd_face:'; break;
-                    case 6: $answer = 'https://gph.is/189r81H'; break;
+                    case 4: $answer = ':nerd_face:'; break;
+                    case 5: $answer = 'https://gph.is/189r81H'; break;
                 }
                 self::sendToSlack( "Notif : Réponse à @$senderSlug -> $answer" );
                 $this->sendComment( $cardId, $answer );
