@@ -29,7 +29,8 @@ class TrelloManager {
         $this->slack_webhook = $config["slack_webhook"];
     }
 
-    public function doCron(Request $request, Response $response) {
+    public function doCron( Request $request, Response $response, array $args ) {
+        // var_dump ( $args );
         $this->request = $request;
         $this->response = $response->withHeader('Content-type', 'text/plain');
 
@@ -140,7 +141,7 @@ class TrelloManager {
                 $senderSlug = $notif->memberCreator->username;
                 $senderFullName = $notif->memberCreator->fullName;
                 
-                switch( random_int( 0, 6) ) {
+                switch( random_int( 0, 5 ) ) {
                     case 0: $answer = ':horse:'; break;
                     case 1: $answer = ':robot_face:'; break;
                     case 2: $answer = ':zany_face:'; break;
@@ -148,7 +149,9 @@ class TrelloManager {
                     case 4: $answer = ':nerd_face:'; break;
                     case 5: $answer = 'https://gph.is/189r81H'; break;
                 }
-                self::sendToSlack( "Notif : Réponse à @$senderSlug -> $answer" );
+                // $this->logger->info( 'Notif data : ', $notif );
+                $cardLink = "https://www.trello.com/c/" . $notif->data->card->shortLink;
+                self::sendToSlack( "Notif : Réponse à @$senderSlug -> $answer ($cardLink)" );
                 $this->sendComment( $cardId, $answer );
                 $body->write( "Notif : Réponse à @$senderSlug -> $answer" );
                 $this->trelloRequest( "notifications/$notifId/unread", [ "value" => "false" ], "PUT" );
@@ -177,7 +180,7 @@ class TrelloManager {
             $actions = json_decode($reponse["response"]);
             return $actions;
         } else {
-            echo "Carte " . $card->id ." est introuvable\n";
+            echo "Carte " . $card_id ." est introuvable\n";
             return NULL;
         }
     }
@@ -248,7 +251,7 @@ class TrelloManager {
         $url = $this->slack_webhook;
 
         $message = array('payload' => json_encode(array(
-            'text' => $msg
+            'text' =>  $msg
         )));
 
         $ch = curl_init(); 
