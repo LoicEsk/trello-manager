@@ -105,6 +105,7 @@ class TrelloManager {
                 $d = new DateTime(isset($actionsUpdate[0]->date) ? $actionsUpdate[0]->date : $card->dateLastActivity );
                 $deltaUpdate = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
 
+                $cardLink = "https://www.trello.com/c/" . $card->shortLink;
                 $body->write( "Carte en attente depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours \t\t-- " . $card->name . "\n" );
 
                 if($deltaLastActivity > $delai) {
@@ -117,12 +118,12 @@ class TrelloManager {
                     if($deltaUpdate > 11 * $delai) $notif = "@card " . round($deltaUpdate, 0) . " jours !! :skull_and_crossbones:";
                     
                     $body->write("=> UP !\n");
-                    self::sendToSlack( "UP : Ici depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours : " . $card->name);
+                    self::sendToSlack( "UP : Ici depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours : " . $card->name . "($cardLink)" );
                     $this->sendComment( $card->id, $notif );
                 }
             }
         } else {
-            $this->app->logger->error( "Liste en attente introuvable :(");
+            $this->app->logger->error( "Liste $idListe introuvable :(");
             $this->sendToSlack(":danger: La liste $idListe est introuvable !");
         }
     }
