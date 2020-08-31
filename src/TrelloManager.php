@@ -144,10 +144,10 @@ class TrelloManager {
                 
                 switch( random_int( 0, 5 ) ) {
                     case 0: $answer = ':horse:'; break;
-                    case 1: $answer = ':robot_face:'; break;
-                    case 2: $answer = ':zany_face:'; break;
+                    case 1: $answer = ':collision:'; break;
+                    case 2: $answer = ':innocent:'; break;
                     case 3: $answer = ':flushed:'; break;
-                    case 4: $answer = ':nerd_face:'; break;
+                    case 4: $answer = ':wink:'; break;
                     case 5: $answer = 'https://gph.is/189r81H'; break;
                 }
                 // $this->logger->info( 'Notif data : ', $notif );
