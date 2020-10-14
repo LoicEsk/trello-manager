@@ -107,7 +107,7 @@ class CheckboxCommentator {
                     }
                     else {
                         $actionText = $action['state'] === "complete" ? "coché" : "décoché";
-                        $comments[] = "$actionBulet puis" . $action['userName'] . " l'a $actionText";
+                        $comments[] = "$actionBulet puis " . $action['userName'] . " l'a $actionText";
                     }
                 }
                 $comment = implode( "\n", $comments);

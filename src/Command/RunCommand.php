@@ -150,7 +150,7 @@ class RunCommand extends Command
                     
                     $body->write("=> UP !\n");
                     $this->logger->info( "UP : Ici depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours : " . $card->name . "($cardLink)" );
-                    $this->sendComment( $card->id, $notif );
+                    $this->trello->sendComment( $card->id, $notif );
                 }
             }
         } else {
@@ -183,7 +183,7 @@ class RunCommand extends Command
                 // $this->logger->info( 'Notif data : ', $notif );
                 $cardLink = "https://www.trello.com/c/" . $notif->data->card->shortLink;
                 $this->logger->info( "Notif : Réponse à @$senderSlug -> $answer ($cardLink)" );
-                $this->sendComment( $cardId, $answer );
+                $this->trello->sendComment( $cardId, $answer );
                 $body->write( "Notif : Réponse à @$senderSlug -> $answer" );
                 $this->trello->trelloRequest( "notifications/$notifId/unread", [ "value" => "false" ], "PUT" );
                 // var_dump( $this->trello->trelloRequest( "notifications/$notifId", [ 'unread' => false ], "PUT" ) );
