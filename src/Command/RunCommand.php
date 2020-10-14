@@ -58,8 +58,6 @@ class RunCommand extends Command
          * Méthode horribe à changer
          */
         $config = require ( __DIR__ . '/../configTrello.php');
-        $this->trelloKey = $config["trelloKey"];
-        $this->trelloToken = $config["trelloToken"];
         $this->archivageListe = $config['archivage'];
         $this->upListe = $config['up'];
 
