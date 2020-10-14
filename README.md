@@ -2,10 +2,11 @@
 Automatisation de taches et statistiques pour Trello
 
 Application experimentale
-Basée sur le framework Slim
+Basée sur le framework Symfony
 
-## Docs
-http://www.slimframework.com/docs/
+Lancement de taches automatisées :
+``php bin/console app:run``
+A lancer via un cron
 
 ## Installation
 
@@ -15,6 +16,9 @@ http://www.slimframework.com/docs/
 4. Entrer les clés et les ID Trello dans fichier configTrello.php
 
 ## PHP build-in serveur
-``php -S localhost:8888 -t api/public public/index.php``
-ou
-``composer start``
+
+``Symfony server:start``
+
+## Docker
+
+``docker-compose up``

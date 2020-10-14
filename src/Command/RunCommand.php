@@ -6,6 +6,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Psr\Log\LoggerInterface;
+use App\Service\TrelloInterface;
+use App\Service\CheckboxCommentator;
 
 class RunCommand extends Command
 {
@@ -17,10 +19,15 @@ class RunCommand extends Command
 
     protected OutputInterface $ouput;
     protected LoggerInterface $logger;
+    protected TrelloInterface $trello;
 
-    public function __construct(LoggerInterface $logger)
+    protected CheckboxCommentator $checkboxCommentator;
+
+    public function __construct(LoggerInterface $logger, TrelloInterface $trello, CheckboxCommentator $checkboxCommentator)
     {
         $this->logger = $logger;
+        $this->trello = $trello;
+        $this->checkboxCommentator = $checkboxCommentator;
 
         parent::__construct();
     }
@@ -58,6 +65,8 @@ class RunCommand extends Command
 
         $this->doArchivage();
         $this->doUp();
+        $this->readNotifs();
+        $this->checkboxCommentator->run( $output );
 
 
         return Command::SUCCESS;
@@ -88,7 +97,7 @@ class RunCommand extends Command
         $body->write("\n== Archivage des cartes $idListe\n");
 
         $timeNow = new \DateTime("NOW");
-        $cards = $this->getList( $idListe );
+        $cards = $this->trello->getList( $idListe );
         $body->write("   " . count($cards) . " cartes à archiver au bout de $delai jours\n");
         if($cards) {
             foreach($cards as $card) {
@@ -99,14 +108,13 @@ class RunCommand extends Command
                 if($deltaLastActivity > $delai) {
                     if($this->closeCard($card->id)) {
                         $msg = "ARCHIVEE : " . $card->name;
-                        $this->app->logger->info($msg);
                         $this->logger->info($msg);
                     } 
-                    else $this->app->logger->error( "La carte " . $card->name . " n'a pas pu être archivée");
+                    else $this->logger->error( "La carte " . $card->name . " n'a pas pu être archivée");
                 }
             }
         } else {
-            $this->app->logger->error( "Liste à nettoyer introuvable :(");
+            $this->logger->error( "Liste à nettoyer introuvable :(");
         }
     }
 
@@ -115,7 +123,7 @@ class RunCommand extends Command
         $body->write("\n== Rappel des cartes $idListe\n");
 
         $timeNow = new \DateTime("NOW");
-        $cards = $this->getList( $idListe );
+        $cards = $this->trello->getList( $idListe );
         $body->write("   " . count($cards) . " cartes à notifier au bout de $delai jours\n");
         if($cards) {
             foreach($cards as $card) {
@@ -124,12 +132,12 @@ class RunCommand extends Command
                 $deltaLastActivity = ($timeNow->getTimestamp() - $lastActivity->getTimestamp()) / 86400;
 
                 // dernière modification de carte
-                $actionsUpdate = $this->getCardActions( $card->id, "updateCard" );
+                $actionsUpdate = $this->trello->getCardActions( $card->id, "updateCard" );
                 $d = new \DateTime(isset($actionsUpdate[0]->date) ? $actionsUpdate[0]->date : $card->dateLastActivity );
                 $deltaUpdate = ($timeNow->getTimestamp() - $d->getTimestamp()) / 86400; // différence en jours
 
                 $cardLink = "https://www.trello.com/c/" . $card->shortLink;
-                $body->write( "Carte en attente depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours \t\t-- " . $card->name . "\n" );
+                $body->write( "   - Carte en attente depuis " . round($deltaUpdate, 2) . " jours. Aucune activité depuis " . round($deltaLastActivity, 2) . " jours \t\t-- " . $card->name . "\n" );
 
                 if($deltaLastActivity > $delai) {
                     $notif = "@card Cette carte est ici depuis " . round($deltaUpdate, 0) . " jours.";
@@ -146,16 +154,15 @@ class RunCommand extends Command
                 }
             }
         } else {
-            $this->app->logger->error( "Liste $idListe introuvable :(");
             $this->logger->info(":danger: La liste $idListe est introuvable !");
         }
     }
 
     public function readNotifs( ) {
-        $body = $this->response->getBody();
+        $body = $this->output;
         $body->write( "\n== Réponses aux notifications\n" );
 
-        $notifications = $this->getUnreadNotifications();
+        $notifications = $this->trello->getUnreadNotifications();
         if( $notifications ) {
             $body->write( count( $notifications ) . " notifications\n" );
             foreach( $notifications as $notif ) {
@@ -178,97 +185,11 @@ class RunCommand extends Command
                 $this->logger->info( "Notif : Réponse à @$senderSlug -> $answer ($cardLink)" );
                 $this->sendComment( $cardId, $answer );
                 $body->write( "Notif : Réponse à @$senderSlug -> $answer" );
-                $this->trelloRequest( "notifications/$notifId/unread", [ "value" => "false" ], "PUT" );
-                // var_dump( $this->trelloRequest( "notifications/$notifId", [ 'unread' => false ], "PUT" ) );
+                $this->trello->trelloRequest( "notifications/$notifId/unread", [ "value" => "false" ], "PUT" );
+                // var_dump( $this->trello->trelloRequest( "notifications/$notifId", [ 'unread' => false ], "PUT" ) );
                 // var_dump( $answer );
             }
 
         }
     }
-
-    private function getList($listID) {
-        $route = 'lists/' . $listID . '/cards';
-        $rtn = $this->trelloRequest($route);
-        if($rtn["status"] == 200) {
-            $cards = json_decode($rtn["response"]);
-            return $cards;
-        } else {
-            $this->putput->write( "Liste $listID introuvable :(\n" );
-            return NULL;
-        }
-    }
-
-    private function getCardActions( $card_id, $type ) {
-        $reponse = $this->trelloRequest('cards/' . $card_id. '/actions', array( "filter" => $type ));
-        if($reponse["status"] == 200) {
-            $actions = json_decode($reponse["response"]);
-            return $actions;
-        } else {
-            echo "Carte " . $card_id ." est introuvable\n";
-            return NULL;
-        }
-    }
-
-    private function getUnreadNotifications( ) {
-        $reponse = $this->trelloRequest( 'members/me/notifications', [ 'read_filter' => 'unread'] );
-        if($reponse["status"] == 200) {
-            $actions = json_decode($reponse["response"]);
-            return $actions;
-        } else {
-            echo "Notifications introuvables\n";
-            return NULL;
-        }
-    }
-
-    private function closeCard($card_id) {
-        $rtn = $this->trelloRequest("cards/" . $card_id, array("closed" => true), "PUT");
-        return $rtn["status"] == 200;
-    }
-
-    private function sendComment( $card_id, $comment_text ) {
-        $rtn = $this->trelloRequest("cards/$card_id/actions/comments", array("text" => $comment_text), "POST");
-        // var_dump($rtn);
-        return $rtn["status"] == 200;
-    }
-
-    private function trelloRequest($cmd, $params = array(), $methode = "GET") {
-        // url de l'API Trello
-        $url = 'https://api.trello.com/1/' . $cmd;
-
-        // ajout des identifiants
-        $params['key'] = $this->trelloKey;
-        $params['token'] = $this->trelloToken;
-
-        $paramsStr = implode('&', array_map(
-            function ($v, $k) {
-                if(is_array($v)){
-                    return $k.'[]='.implode('&'.$k.'[]=', $v);
-                }else{
-                    return $k.'='.$v;
-                }
-            }, 
-            $params, 
-            array_keys($params)
-        ));
-
-        if( $methode !== "POST" ) $url .= "?" . $paramsStr;
-
-        // echo 'Envoi d\'une requête : ', $url, "\n";
-
-        $ch = curl_init(); 
-        curl_setopt($ch, CURLOPT_URL, $url); 
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $methode);
-        if( $methode === "POST" ) curl_setopt($ch, CURLOPT_POSTFIELDS, $paramsStr);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
-        $body = curl_exec($ch); 
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
-        curl_close($ch); 
-
-        $retour = array(
-            'status' => $httpCode,
-            'response' => $body
-        );
-        return $retour;
-    }
-
 }
