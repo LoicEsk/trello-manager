@@ -68,7 +68,8 @@ class TrelloInterface {
             $cards = json_decode($rtn["response"]);
             return $cards;
         } else {
-            $this->output->write( "Liste $listID introuvable :(\n" );
+            echo  "Liste $listID introuvable :(\n";
+            $this->logger->warning( "Liste $listID introuvable :(\n" );
             return NULL;
         }
     }

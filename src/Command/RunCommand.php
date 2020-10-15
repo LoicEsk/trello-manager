@@ -6,6 +6,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Psr\Log\LoggerInterface;
+use Doctrine\ORM\EntityManagerInterface;
+
+use App\Entity\Option;
+
 use App\Service\TrelloInterface;
 use App\Service\CheckboxCommentator;
 
@@ -14,18 +18,22 @@ class RunCommand extends Command
     // the name of the command (the part after "bin/console")
     protected static $defaultName = 'app:run';
 
+    protected LoggerInterface $logger;
+    protected EntityManagerInterface $em;
+
+    protected OutputInterface $ouput;
+    protected TrelloInterface $trello;
+
     protected String $trelloKey = '';
     protected String $trelloToken  = '';
 
-    protected OutputInterface $ouput;
-    protected LoggerInterface $logger;
-    protected TrelloInterface $trello;
 
     protected CheckboxCommentator $checkboxCommentator;
 
-    public function __construct(LoggerInterface $logger, TrelloInterface $trello, CheckboxCommentator $checkboxCommentator)
+    public function __construct(LoggerInterface $logger, EntityManagerInterface $em, TrelloInterface $trello, CheckboxCommentator $checkboxCommentator)
     {
         $this->logger = $logger;
+        $this->em = $em;
         $this->trello = $trello;
         $this->checkboxCommentator = $checkboxCommentator;
 
@@ -47,19 +55,22 @@ class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->output = $output;
-        
-        $output->writeln([
-            'RUN',
-            '============'
-        ]);
 
         /**
          * Lecture parametres
          * Méthode horribe à changer
          */
-        $config = require ( __DIR__ . '/../configTrello.php');
-        $this->archivageListe = $config['archivage'];
-        $this->upListe = $config['up'];
+
+        $oppArchivages = $this->em->getRepository( Option::class )->findByName( 'list_to_archive' );
+        $this->archivageListe = array_map( function( $item ) {
+            return json_decode( $item->getValue() );
+        }, $oppArchivages );
+
+        $oppUps = $this->em->getRepository( Option::class )->findByName( 'list_to_up' );
+        $this->upListe = array_map( function( $item ) {
+            return json_decode( $item->getValue() );
+        }, $oppUps );
+
 
         $this->doArchivage();
         $this->doUp();
@@ -78,7 +89,7 @@ class RunCommand extends Command
     public function doArchivage() {
         $todo = $this->archivageListe;
         foreach( $todo as $tache ) {
-            $this->archivage( $tache['liste'], $tache['delai'] );
+            $this->archivage( $tache->liste, $tache->delai );
         }
     }
 
@@ -86,7 +97,7 @@ class RunCommand extends Command
         $body = $this->output;
         $todo = $this->upListe;
         foreach( $todo as $tache ) {
-            $this->up( $tache['liste'], $tache['delai'] );
+            $this->up( $tache->liste, $tache->delai );
         }
     }
 
@@ -96,7 +107,8 @@ class RunCommand extends Command
 
         $timeNow = new \DateTime("NOW");
         $cards = $this->trello->getList( $idListe );
-        $body->write("   " . count($cards) . " cartes à archiver au bout de $delai jours\n");
+        $cardsCount = \is_array( $cards) ? count( $cards) : 0;
+        $body->write("   " . $cardsCount . " cartes à archiver au bout de $delai jours\n");
         if($cards) {
             foreach($cards as $card) {
                 $lastActivity = new \DateTime($card->dateLastActivity);
@@ -104,7 +116,7 @@ class RunCommand extends Command
                 $body->write( " - Il y a " . round($deltaLastActivity, 2) . " jours : " . $card->name . "\n" );
 
                 if($deltaLastActivity > $delai) {
-                    if($this->closeCard($card->id)) {
+                    if($this->trello->closeCard($card->id)) {
                         $msg = "ARCHIVEE : " . $card->name;
                         $this->logger->info($msg);
                     } 
@@ -122,7 +134,8 @@ class RunCommand extends Command
 
         $timeNow = new \DateTime("NOW");
         $cards = $this->trello->getList( $idListe );
-        $body->write("   " . count($cards) . " cartes à notifier au bout de $delai jours\n");
+        $cardsCount = \is_array( $cards) ? count( $cards) : 0;
+        $body->write("   " . $cardsCount . " cartes à notifier au bout de $delai jours\n");
         if($cards) {
             foreach($cards as $card) {
                 // dernière actuvuté de la carte
