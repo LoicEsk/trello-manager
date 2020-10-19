@@ -75,9 +75,14 @@ class TrelloInterface {
     }
 
     public function sendComment( $card_id, $comment_text ) {
-        $rtn = $this->trelloRequest("cards/$card_id/actions/comments", array("text" => $comment_text), "POST");
+        echo "Commentaire sur la carte $card_id >> $comment_text\n";
+        if( $_ENV['APP_ENV'] !== 'prod' ) {
+            $rtn = $this->trelloRequest("cards/$card_id/actions/comments", array("text" => $comment_text), "POST");
+            return $rtn["status"] == 200;
+        }
+        echo "!! DEV MODE -> non envoyé !!";
+        return true;
         // var_dump($rtn);
-        return $rtn["status"] == 200;
     }
 
     public function trelloRequest($cmd, $params = array(), $methode = "GET") {
