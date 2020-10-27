@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello HomeController!{% endblock %}
+
+{% block content %}
+
+<div class="example-wrapper">
+    <h1>Trello manager</h1>
+
+    <h2>Gestion de l'outil</h2>
+    <div class="row">
+        <div class="col-6">
+            <h3>Archivage automatique des cartes</h3>
+        </div>
+        <div class="col-6">
+            <h3>Rappel des cartes inactives</h3>
+        </div>
+        <div class="col-6">
+            <h3>Réponses aux notifications</h3>
+        </div>
+    </div>
+    <h2>Outils</h2>
+    <h3>Liste des tableaux</h3>
+    <table class="table">
+        <tr>
+            <th>Nom</th>
+            <th>ID</th>
+        </tr>
+        {% for b in boards %}
+        <tr>
+            <td>{{ b.name }}</td>
+            <td>{{ b.id }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
