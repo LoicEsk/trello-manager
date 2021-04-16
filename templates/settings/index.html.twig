@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello SettingsController!{% endblock %}
+
+{% block content %}
+    <div class="example-wrapper">
+        <h1 class="display-4 text-primary mb-4">Settings</h1>
+
+        <h2>Outils</h2>
+        <h3>Liste des tableaux</h3>
+        <table class="table">
+            <tr>
+                <th>Nom</th>
+                <th>ID</th>
+            </tr>
+            {% for b in boards %}
+            <tr>
+                <td>{{ b.name }}</td>
+                <td>{{ b.id }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

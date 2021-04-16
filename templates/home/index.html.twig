@@ -5,33 +5,17 @@
 {% block content %}
 
 <div class="example-wrapper">
-    <h1>Trello manager</h1>
-
-    <h2>Gestion de l'outil</h2>
-    <div class="row">
-        <div class="col-6">
-            <h3>Archivage automatique des cartes</h3>
-        </div>
-        <div class="col-6">
-            <h3>Rappel des cartes inactives</h3>
-        </div>
-        <div class="col-6">
-            <h3>Réponses aux notifications</h3>
-        </div>
+    <div class="jumbotron">
+        <h1 class="display-4 text-primary">Trello manager</h1>
+        <p class="lead">Cette application automatise des actions pour vos tableaux Trello</p>
     </div>
-    <h2>Outils</h2>
-    <h3>Liste des tableaux</h3>
-    <table class="table">
-        <tr>
-            <th>Nom</th>
-            <th>ID</th>
-        </tr>
-        {% for b in boards %}
-        <tr>
-            <td>{{ b.name }}</td>
-            <td>{{ b.id }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+
+    <h2>Menu</h2>
+    <div class="list-group">
+        <a href="{{ path("settings") }}" class="list-group-item list-group-item-action">Parametrage (Chargement un peu long, c'est normal)</a>
+    </div>
+
+    <h2 class="mt-4">Statistiques</h2>
+
 </div>
 {% endblock %}

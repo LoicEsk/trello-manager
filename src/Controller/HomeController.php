@@ -14,17 +14,8 @@ class HomeController extends AbstractController
      */
     public function index( TrelloInterface $trello )
     {
-        // liste des tableaux dispo
-        $boards = $trello->getAllMyBoards();
-        $boradList = array_map( function( $item ) {
-            return [
-                'name'      => $item->name,
-                'id'        => $item->id
-            ];
-        }, $boards );
         return $this->render('home/index.html.twig', [
             'controller_name' => 'HomeController',
-            'boards'        => $boradList
         ]);
     }
 }

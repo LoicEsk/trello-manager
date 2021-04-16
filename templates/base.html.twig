@@ -8,6 +8,11 @@
         {% endblock %}
     </head>
     <body>
+        <header>
+            <nav class="navbar navbar-light bg-light">
+                <a class="navbar-brand" href="{{ path("home") }}">Trello manager</a>
+            </nav>
+        </header>
         {% block body %}
         <section class="container my-5">
             {% block content %}{% endblock %}
