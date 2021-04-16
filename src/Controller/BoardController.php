@@ -6,6 +6,7 @@ use App\Entity\Board;
 use App\Form\BoardType;
 use App\Form\NewBoardType;
 use App\Repository\BoardRepository;
+use App\Repository\BoardListRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,10 +66,14 @@ class BoardController extends AbstractController
     /**
      * @Route("/{id}", name="board_show", methods={"GET"})
      */
-    public function show(Board $board): Response
+    public function show(Board $board, BoardListRepository $boardListRepo): Response
     {
+        $board_lists = $boardListRepo->findBy([
+            'board' => $board
+        ]);
         return $this->render('board/show.html.twig', [
             'board' => $board,
+            'board_lists'   => $board_lists
         ]);
     }
 

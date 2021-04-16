@@ -106,7 +106,7 @@ class RunCommand extends Command
         $body->write("\n== Archivage des cartes $idListe\n");
 
         $timeNow = new \DateTime("NOW");
-        $cards = $this->trello->getList( $idListe );
+        $cards = $this->trello->getCardsFromList( $idListe );
         $cardsCount = \is_array( $cards) ? count( $cards) : 0;
         $body->write("   " . $cardsCount . " cartes à archiver au bout de $delai jours\n");
         if($cards) {
@@ -133,7 +133,7 @@ class RunCommand extends Command
         $body->write("\n== Rappel des cartes $idListe\n");
 
         $timeNow = new \DateTime("NOW");
-        $cards = $this->trello->getList( $idListe );
+        $cards = $this->trello->getCardsFromList( $idListe );
         $cardsCount = \is_array( $cards) ? count( $cards) : 0;
         $body->write("   " . $cardsCount . " cartes à notifier au bout de $delai jours\n");
         if($cards) {

@@ -2,10 +2,10 @@
 
 {% block title %}New BoardList{% endblock %}
 
-{% block body %}
+{% block content %}
     <h1>Create new BoardList</h1>
 
     {{ include('board_list/_form.html.twig') }}
 
-    <a href="{{ path('board_list_index') }}">back to list</a>
+    <a href="{{ path('board_show', { id: board.id}) }}">back to list</a>
 {% endblock %}

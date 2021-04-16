@@ -2,28 +2,21 @@
 
 {% block title %}BoardList index{% endblock %}
 
-{% block body %}
+{% block content %}
     <h1>BoardList index</h1>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>IdTrello</th>
-                <th>Name</th>
-                <th>actions</th>
+                <th>Liste</th>
+                <th>Tableau</th>
             </tr>
         </thead>
         <tbody>
         {% for board_list in board_lists %}
             <tr>
-                <td>{{ board_list.id }}</td>
-                <td>{{ board_list.idTrello }}</td>
-                <td>{{ board_list.name }}</td>
-                <td>
-                    <a href="{{ path('board_list_show', {'id': board_list.id}) }}">show</a>
-                    <a href="{{ path('board_list_edit', {'id': board_list.id}) }}">edit</a>
-                </td>
+                <td><a href="{{ path('board_list_show', {'id': board_list.id}) }}">{{ board_list.name }}</a></td>
+                <td><a href="{{ path('board_show', { id: board_list.board.id } ) }}">{{ board_list.board.name }}</a></td>
             </tr>
         {% else %}
             <tr>
@@ -33,5 +26,4 @@
         </tbody>
     </table>
 
-    <a href="{{ path('board_list_new') }}">Create new</a>
 {% endblock %}

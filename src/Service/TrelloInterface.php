@@ -70,7 +70,28 @@ class TrelloInterface {
         }
     }
 
-    public function getList($listID) {
+    public function getListsFromBoard( $board_id ) {
+        $route = "/boards/$board_id/lists";
+        $rtn = $this->trelloRequest($route);
+        if($rtn["status"] == 200) {
+            $cards = json_decode($rtn["response"]);
+            return $cards;
+        } else {
+            $this->logger->warning( "Echec de la requête $route" );
+            return NULL;
+        }
+    }
+
+    public function getList( $listID ) {
+        $rep = $this->trelloRequest( "/lists/$listID" );
+        if( $rep[ 'status' ] !== 200 ) {
+            $this->logger->warning( "Le liste $id introuvable" );
+            return [];
+        }
+        return json_decode( $rep['response'] ) ;
+    }
+
+    public function getCardsFromList($listID) {
         $route = 'lists/' . $listID . '/cards';
         $rtn = $this->trelloRequest($route);
         if($rtn["status"] == 200) {

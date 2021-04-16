@@ -27,4 +27,15 @@
     <a href="{{ path('board_edit', {'id': board.id}) }}">edit</a>
 
     {{ include('board/_delete_form.html.twig') }}
+
+    <h2 class="mt-4">Les listes</h2>
+    <ul class="list-group">
+        {% for board_list in board_lists %}
+        <a href="{{ path('board_list_show', {'id': board_list.id}) }}" class="list-group-item list-group-item-action">{{ board_list.name }}</a>
+        {% else %}
+        <li class="list-group-item">Aucune liste</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ path('board_list_new', { id: board.id}) }}" class="btn btn-primary mt-4">Ajouter une liste</a>
 {% endblock %}

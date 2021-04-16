@@ -3,9 +3,11 @@
 namespace App\Form;
 
 use App\Entity\BoardList;
+use App\Entity\Board;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class BoardListType extends AbstractType
 {
@@ -14,7 +16,10 @@ class BoardListType extends AbstractType
         $builder
             ->add('idTrello')
             ->add('name')
-            ->add('board')
+            ->add('board',  EntityType::class, [
+                'class' => Board::class,
+                'choice_label' => 'name',
+            ])
         ;
     }
 
