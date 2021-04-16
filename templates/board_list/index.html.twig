@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}BoardList index{% endblock %}
+
+{% block body %}
+    <h1>BoardList index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>IdTrello</th>
+                <th>Name</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for board_list in board_lists %}
+            <tr>
+                <td>{{ board_list.id }}</td>
+                <td>{{ board_list.idTrello }}</td>
+                <td>{{ board_list.name }}</td>
+                <td>
+                    <a href="{{ path('board_list_show', {'id': board_list.id}) }}">show</a>
+                    <a href="{{ path('board_list_edit', {'id': board_list.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('board_list_new') }}">Create new</a>
+{% endblock %}

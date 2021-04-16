@@ -34,6 +34,15 @@ class TrelloInterface {
         return json_decode( $rep['response'] ) ;
     }
 
+    public function getBoard( $id ) {
+        $rep = $this->trelloRequest( "/boards/$id" );
+        if( $rep[ 'status' ] !== 200 ) {
+            $this->logger->warning( "Le tableau $id introuvable" );
+            return [];
+        }
+        return json_decode( $rep['response'] ) ;
+    }
+
     public function closeCard($card_id) {
         $rtn = $this->trelloRequest("cards/" . $card_id, array("closed" => true), "PUT");
         return $rtn["status"] == 200;

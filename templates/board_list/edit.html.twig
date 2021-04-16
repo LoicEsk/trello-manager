@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit BoardList{% endblock %}
+
+{% block body %}
+    <h1>Edit BoardList</h1>
+
+    {{ include('board_list/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('board_list_index') }}">back to list</a>
+
+    {{ include('board_list/_delete_form.html.twig') }}
+{% endblock %}
