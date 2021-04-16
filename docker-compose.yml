@@ -3,13 +3,13 @@ services:
     php:
         build: .docker
         volumes:
+            - .:/var/www/app
             - ./.docker/conf/php/php.ini:/usr/local/etc/php/conf.d/php.ini
-            - ./.docker/conf/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
-            - .:/var/www
         ports:
-            - "8080:80"
+            - "8000:80"
         depends_on:
             - db
+        user: www-data
     db:
         image: mysql:5
         ports:
@@ -17,8 +17,8 @@ services:
         environment:
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
             MYSQL_USER: 'root'
-        volumes:
-            - .docker/data/mysqlSf:/var/lib/mysql
+        # volumes:
+            # - .docker/data/mysqlSf:/var/lib/mysql
 
     mailhog:
         image: mailhog/mailhog:v1.0.0
