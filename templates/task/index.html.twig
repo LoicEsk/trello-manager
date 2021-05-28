@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Task index{% endblock %}
+
+{% block content %}
+    <h1>Task index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Properties</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td>{{ task.id }}</td>
+                <td>{{ task.type }}</td>
+                <td>{{ task.name }}</td>
+                <td>{{ task.properties ? task.properties|json_encode : '' }}</td>
+                <td>
+                    <a href="{{ path('task_show', {'id': task.id}) }}">show</a>
+                    <a href="{{ path('task_edit', {'id': task.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('task_new') }}">Create new</a>
+{% endblock %}
