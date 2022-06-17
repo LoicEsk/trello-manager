@@ -36,12 +36,8 @@ Et si la base de données n'est pas à jour :
 
 ## Configuration
 
-La configuration se fait en base de données dans la table *app_options*. 
+Pour la connexion à Trello, il faut entrer les identifiant dans *app_options*. 
 
 | name              | value             |
 |-------------------|-------------------|
 | trello_key        | *clé Trello*      |
-| list_to_archive   | {"liste":"*id_de_la_liste*","delai":"*nombre de jours*"}  |
-| list_to_up        | {"liste":"*id_de_la_liste*","delai":"*nombre de jours*"}  |
-
-On peut mettre autant de *list_to_archive* et *list_to_up* que voulu.
