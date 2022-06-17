@@ -10,13 +10,18 @@ services:
         depends_on:
             - db
         user: www-data
+        dns:
+            - 8.8.8.8
+            - 208.67.222.222
+            - 1.1.1.1
+
     db:
         image: mysql:5
         ports:
             - "3307:3306"
         environment:
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-            MYSQL_USER: 'root'
+            MYSQL_DATABASE: 'trello_manager'
         # volumes:
             # - .docker/data/mysqlSf:/var/lib/mysql
 

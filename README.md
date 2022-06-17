@@ -25,6 +25,23 @@ A lancer via un cron
 
 ``Symfony server:start``
 
-## Docker
+### Docker
 
-``docker-compose up``
+``docker compose up``
+``docker compose exec php composer install``
+
+Et si la base de données n'est pas à jour : 
+
+``docker compose exec php php bin/console doctrine:migrations:migrate``
+
+## Configuration
+
+La configuration se fait en base de données dans la table *app_options*. 
+
+| name              | value             |
+|-------------------|-------------------|
+| trello_key        | *clé Trello*      |
+| list_to_archive   | {"liste":"*id_de_la_liste*","delai":"*nombre de jours*"}  |
+| list_to_up        | {"liste":"*id_de_la_liste*","delai":"*nombre de jours*"}  |
+
+On peut mettre autant de *list_to_archive* et *list_to_up* que voulu.
