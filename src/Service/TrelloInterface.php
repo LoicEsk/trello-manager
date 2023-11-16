@@ -106,7 +106,7 @@ class TrelloInterface {
 
     public function sendComment( $card_id, $comment_text ) {
         echo "Commentaire sur la carte $card_id >> $comment_text\n";
-        if( $_ENV['APP_ENV'] !== 'prod' ) {
+        if( $_ENV['APP_ENV'] === 'prod' ) {
             $rtn = $this->trelloRequest("cards/$card_id/actions/comments", array("text" => $comment_text), "POST");
             return $rtn["status"] == 200;
         }
