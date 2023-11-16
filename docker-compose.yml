@@ -1,6 +1,6 @@
 version: '3'
 services:
-    php:
+    sf:
         build: .docker
         volumes:
             - .:/var/www/app
@@ -10,10 +10,6 @@ services:
         depends_on:
             - db
         user: www-data
-        dns:
-            - 8.8.8.8
-            - 208.67.222.222
-            - 1.1.1.1
 
     db:
         image: mysql:5
